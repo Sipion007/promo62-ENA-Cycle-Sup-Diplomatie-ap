@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'promo62-secret-key-change-in-production';
 
 // Upload config
@@ -251,6 +251,11 @@ function createNotification(userId, type, content, relatedId = null) {
     [uuid(), userId, type, content, relatedId]
   );
 }
+
+// ============= ROOT ROUTE =============
+app.get('/', (req, res) => {
+  res.sendFile(join(__dirname, 'public/index.html'));
+});
 
 // ============= AUTH ROUTES =============
 app.post('/api/auth/login', (req, res) => {
