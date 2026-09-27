@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FF6600">
+    <meta name="description" content="Plateforme communautaire pour la Promo 62 ENA Diplomatie">
+    <title>Promo 62 – ENA Diplomatie</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==">
+    <style>
+    :root {
+      --orange: #FF6600;
+      --green: #00A651;
+      --gray-100: #F5F5F5;
+      --gray-200: #E8E8E8;
+      --gray-400: #999999;
+      --gray-600: #666666;
+      --gray-900: #1F1F1F;
+      --white: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .auth-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      background: var(--gray-100);
+    }
+
+    .auth-box {
+      background: var(--white);
+      padding: 30px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-box h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      text-align: center;
+      color: var(--orange);
+    }
+
+    .auth-box p {
+      margin: 0 0 24px 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--gray-900);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--gray-200);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--orange);
+      color: var(--white);
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn:hover {
+      background: #E55A00;
+    }
+
+    .toggle-auth {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+    }
+
+    .toggle-auth a {
+      color: var(--orange);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .header {
+      background: var(--orange);
+      color: var(--white);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .header-actions span {
+      font-size: 12px;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--white);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    .tab-btn.active {
+      background: var(--orange);
+      color: var(--white);
+      border-color: var(--orange);
+    }
+
+    .content {
+      padding: 16px;
+      flex: 1;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .welcome-box {
+      background: var(--white);
+      padding: 16px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .welcome-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin: 0 0 4px 0;
+    }
+
+    .welcome-date {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin: 0;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: var(--white);
+      padding: 16px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-400);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    .stat-box.green .stat-value {
+      color: var(--green);
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      border-left: 3px solid var(--orange);
+    }
+
+    .card.green {
+      border-left-color: var(--green);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-900);
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      margin: 0;
+    }
+
+    .card-content {
+      padding: 12px 16px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      font-size: 13px;
+      color: var(--gray-900);
+      font-weight: 500;
+    }
+
+    .item-time {
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .btn-download {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border: 1px solid var(--orange);
+      background: var(--white);
+      color: var(--orange);
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-download:hover {
+      background: var(--gray-100);
+    }
+
+    .event-title {
+      font-size: 13px;
+      color: var(--gray-900);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .event-date {
+      font-size: 12px;
+      color: var(--orange);
+      font-weight: 600;
+    }
+
+    .forum-post {
+      background: var(--white);
+      padding: 14px 16px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--green);
+    }
+
+    .forum-author {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .forum-text {
+      font-size: 13px;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .forum-time {
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    .input-group input, .input-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--gray-200);
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 8px;
+      font-family: inherit;
+    }
+
+    @media (max-width: 480px) {
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="app.js"></script>
+</body>
+</html>
