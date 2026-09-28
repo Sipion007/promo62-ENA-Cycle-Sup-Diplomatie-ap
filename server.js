@@ -34,7 +34,7 @@ const db = new sqlite3.Database('./promo62.db', (err) => {
 });
 
 // Initialize database
-function initDatabase() {
+function initDatabase(callback) {
   db.serialize(() => {
     // Users table
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -214,14 +214,25 @@ function initDatabase() {
             [uuid(), cat]
           );
         });
+
+        console.log('Database initialized with all tables');
+        callback();
       }
     );
-
-    console.log('Database initialized with all tables');
   });
 }
 
-initDatabase();
+// Initialize database and start server
+initDatabase(() => {
+  app.listen(PORT, () => {
+    console.log(`\n✅ Server running on http://localhost:${PORT}`);
+    console.log(`📱 Open in browser: http://localhost:${PORT}`);
+    console.log(`\n🔐 Admin accounts:`);
+    console.log(`   Super Admin - Email: abouhaidara725@gmail.com`);
+    console.log(`   Regular Admin - Email: makouindiabate@gmail.com`);
+    console.log(`   Password: admin123\n`);
+  });
+});
 
 // Auth middleware
 function verifyToken(req, res, next) {
@@ -784,12 +795,4 @@ app.get('/api/users', verifyToken, (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(users);
   });
-});
-
-app.listen(PORT, () => {
-  console.log(`\n✅ Server running on http://localhost:${PORT}`);
-  console.log(`📱 Open in browser: http://localhost:${PORT}`);
-  console.log(`\n🔐 Admin account:`);
-  console.log(`   Email: admin@promo62.ena`);
-  console.log(`   Password: admin123\n`);
 });
