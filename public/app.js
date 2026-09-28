@@ -7,10 +7,87 @@ let data = {
 };
 const API = '/api';
 
-window.addEventListener('appinstalled', () => {
-  localStorage.setItem('installDismissed', 'true');
-  dismissInstallBanner();
+// PWA Install Banner Management
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  try {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBanner();
+  } catch (err) {
+    console.error('PWA beforeinstallprompt error:', err);
+  }
 });
+
+window.addEventListener('appinstalled', () => {
+  try {
+    localStorage.setItem('installDismissed', 'true');
+    deferredPrompt = null;
+    dismissInstallBanner();
+  } catch (err) {
+    console.error('PWA appinstalled error:', err);
+  }
+});
+
+function showInstallBanner() {
+  try {
+    if (localStorage.getItem('installDismissed') === 'true') return;
+
+    let banner = document.getElementById('pwa-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'pwa-banner';
+      banner.className = 'pwa-banner';
+      banner.innerHTML = `
+        <div class="pwa-banner-content">
+          <span class="pwa-banner-text">Installer l'app Promo 62 sur cet appareil</span>
+          <div class="pwa-banner-buttons">
+            <button class="pwa-btn-install" onclick="installApp()">Installer</button>
+            <button class="pwa-btn-close" onclick="closePWABanner()">✕</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(banner);
+    }
+    banner.style.display = 'flex';
+  } catch (err) {
+    console.error('PWA showInstallBanner error:', err);
+  }
+}
+
+function dismissInstallBanner() {
+  try {
+    const banner = document.getElementById('pwa-banner');
+    if (banner) banner.style.display = 'none';
+  } catch (err) {
+    console.error('PWA dismissInstallBanner error:', err);
+  }
+}
+
+function closePWABanner() {
+  try {
+    localStorage.setItem('installDismissed', 'true');
+    dismissInstallBanner();
+  } catch (err) {
+    console.error('PWA closePWABanner error:', err);
+  }
+}
+
+async function installApp() {
+  try {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.setItem('installDismissed', 'true');
+      dismissInstallBanner();
+    }
+    deferredPrompt = null;
+  } catch (err) {
+    console.error('PWA installApp error:', err);
+  }
+}
 
 function init() {
   token = localStorage.getItem('token');
@@ -22,7 +99,13 @@ function init() {
   } else {
     showAuth();
   }
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+  if ('serviceWorker' in navigator) {
+    try {
+      navigator.serviceWorker.register('service-worker.js');
+    } catch (err) {
+      console.error('Service Worker registration error:', err);
+    }
+  }
 }
 
 function showAuth() {
@@ -106,7 +189,7 @@ function renderStudentDashboard() {
     </div>
     <div class="card"><h3 class="card-title">Emploi du temps</h3><div class="card-content">${data.schedule.length ? data.schedule.map(s => `<div class="item"><span class="item-name">${s.course_name}</span><span class="item-time">${s.day_of_week} ${s.start_time}</span></div>`).join('') : '<p style="color: #999;">Aucun cours</p>'}</div></div>
     <div class="card"><h3 class="card-title">Documents</h3><div class="card-content">${data.documents.length ? data.documents.map(d => `<div class="item"><span class="item-name">${d.title}</span><span class="item-time">${d.size} KB</span></div>`).join('') : '<p style="color: #999;">Aucun document</p>'}<button class="btn-download" onclick="searchDocs()">Rechercher</button></div></div>
-    <div class="card green"><h3 class="card-title">Galerie photos</h3><div class="card-content" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">${data.photos.slice(0, 4).map(p => `<div style="border-radius: 4px; overflow: hidden; aspect-ratio: 1; background: #f0f0f0;"><img src="${p.photo_url}" style="width: 100%; height: 100%; object-fit: cover;"></div>`).join('')}</div></div>
+    <div class="card green"><h3 class="card-title">Galerie photos</h3><div class="card-content photo-grid">${data.photos.slice(0, 4).map(p => `<div style="border-radius: 4px; overflow: hidden; aspect-ratio: 1; background: #f0f0f0;"><img src="${p.photo_url}" style="width: 100%; height: 100%; object-fit: cover;"></div>`).join('')}</div></div>
     <div class="card green"><h3 class="card-title">Événements à venir</h3><div class="card-content">${data.events.slice(0, 3).map(e => `<div style="padding: 8px 0; border-bottom: 1px solid #e8e8e8;"><div class="event-title">${e.title}</div><div class="event-date">${new Date(e.event_date).toLocaleDateString('fr-FR')} · ${new Date(e.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div></div>`).join('')}</div></div>
   </div>`;
 }
@@ -138,11 +221,11 @@ function renderForum() {
 function renderMessages() {
   return `<div id="messages" class="section">
     <div class="welcome-box"><h2 class="welcome-title">Messages privés</h2><p class="welcome-date">Communique avec tes camarades</p></div>
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; height: 500px;">
-      <div style="border: 1px solid #e8e8e8; border-radius: 4px; overflow-y: auto;" id="conversations-list"></div>
-      <div style="border: 1px solid #e8e8e8; border-radius: 4px; display: flex; flex-direction: column;">
-        <div style="flex: 1; overflow-y: auto; padding: 12px;" id="messages-display"></div>
-        <div style="padding: 12px; border-top: 1px solid #e8e8e8;"><input type="text" id="msg-input" placeholder="Écris un message..." style="width: calc(100% - 50px); padding: 8px; border: 1px solid #e8e8e8; border-radius: 4px;"><button onclick="sendMessage()" style="width: 40px; margin-left: 8px; background: #FF6600; color: white; border: none; border-radius: 4px; cursor: pointer;">↓</button></div>
+    <div class="messages-container">
+      <div class="messages-list" id="conversations-list"></div>
+      <div class="messages-chat">
+        <div class="messages-display" id="messages-display"></div>
+        <div class="messages-input"><input type="text" id="msg-input" placeholder="Écris un message..." style="width: calc(100% - 50px); padding: 8px; border: 1px solid #e8e8e8; border-radius: 4px;"><button onclick="sendMessage()" style="width: 40px; margin-left: 8px; background: #FF6600; color: white; border: none; border-radius: 4px; cursor: pointer;">↓</button></div>
       </div>
     </div>
   </div>`;
