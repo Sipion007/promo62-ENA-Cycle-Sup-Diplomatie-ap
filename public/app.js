@@ -7,6 +7,102 @@ let data = {
 };
 const API = '/api';
 
+// ============= PWA INSTALLATION BANNER =============
+let deferredPrompt;
+let installationDismissed = false;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installationDismissed = localStorage.getItem('installDismissed') === 'true';
+  if (!installationDismissed) {
+    setTimeout(() => showInstallBanner(), 1000);
+  }
+});
+
+function showInstallBanner() {
+  const existing = document.getElementById('install-banner');
+  if (existing) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #FF6600, #E55A00);
+    color: white;
+    padding: 14px 16px;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-family: inherit;
+  `;
+
+  banner.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 600; font-size: 14px;">📱 Installer l'application</div>
+        <div style="margin: 2px 0 0 0; font-size: 12px; opacity: 0.9;">Accès direct depuis votre écran d'accueil</div>
+      </div>
+      <button onclick="installApp()" style="
+        background: white;
+        color: #FF6600;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 12px;
+        flex-shrink: 0;
+        white-space: nowrap;
+      ">Installer</button>
+      <button onclick="dismissInstallBanner()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        cursor: pointer;
+        font-size: 18px;
+        flex-shrink: 0;
+      ">✕</button>
+    </div>
+  `;
+
+  document.body.insertBefore(banner, document.body.firstChild);
+  if (document.querySelector('.app')) {
+    document.querySelector('.app').style.marginTop = '60px';
+  }
+}
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        localStorage.setItem('installDismissed', 'true');
+        installationDismissed = true;
+      }
+      deferredPrompt = null;
+      dismissInstallBanner();
+    });
+  }
+}
+
+function dismissInstallBanner() {
+  const banner = document.getElementById('install-banner');
+  if (banner) {
+    banner.remove();
+    const app = document.querySelector('.app');
+    if (app) app.style.marginTop = '0';
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  localStorage.setItem('installDismissed', 'true');
+  dismissInstallBanner();
+});
+
 function init() {
   token = localStorage.getItem('token');
   currentUser = JSON.parse(localStorage.getItem('user'));
