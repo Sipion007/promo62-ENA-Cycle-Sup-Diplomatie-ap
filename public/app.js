@@ -5,7 +5,7 @@ let data = {
   schedule: [], documents: [], grades: [], events: [], forum: [], users: [],
   photos: [], notifications: [], conversations: [], activity: []
 };
-const API = 'http://localhost:3000/api';
+const API = '/api';
 
 function init() {
   token = localStorage.getItem('token');
